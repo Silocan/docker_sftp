@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  sftp:
+    build: .
+    container_name: sftp_server
+    ports:
+      - "2222:22"
+    volumes:
+      - ./data:/data
+    environment:
+      - SFTP_USER=sftpuser
+      - SFTP_PASSWORD=sftpuser
+    restart: unless-stopped
+    networks:
+      - sftp_network
+
+  # Exemple: un autre service qui peut accéder au SFTP
+  client:
+    image: alpine:latest
+    container_name: sftp_client
+    command: sh -c "apk add --no-cache openssh-client && sleep infinity"
+    networks:
+      - sftp_network
+    depends_on:
+      - sftp
+    # Pour tester: docker exec -it sftp_client sh
+    # Puis: sftp -P 22 sftpuser@sftp
+
+networks:
+  sftp_network:
+    driver: bridge

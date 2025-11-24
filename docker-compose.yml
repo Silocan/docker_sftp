@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  sftp:
+    build: .
+    container_name: sftp_server
+    ports:
+      - "2222:22"
+    volumes:
+      - ./data:/data
+    environment:
+      - SFTP_USER=sftpuser
+      - SFTP_PASSWORD=sftpuser
+    restart: unless-stopped
+    networks:
+      - sftp_network
+
+networks:
+  sftp_network:
+    driver: bridge
+
