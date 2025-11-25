@@ -9,8 +9,19 @@ services:
     volumes:
       - ./data:/data
     environment:
-      - SFTP_USER=sftpuser
-      - SFTP_PASSWORD=sftpuser
+      # Premier utilisateur
+      - SFTP_USER_1=client1
+      - SFTP_PASSWORD_1=secret123
+      - SFTP_DIR_1=client1_files
+      
+      # Deuxième utilisateur
+      - SFTP_USER_2=client2
+      - SFTP_PASSWORD_2=secret456
+      - SFTP_DIR_2=client2_files
+      
+      # Troisième utilisateur (le dossier par défaut sera "client3")
+      - SFTP_USER_3=client3
+      - SFTP_PASSWORD_3=secret789
     restart: unless-stopped
     networks:
       - sftp_network
@@ -25,7 +36,9 @@ services:
     depends_on:
       - sftp
     # Pour tester: docker exec -it sftp_client sh
-    # Puis: sftp -P 22 sftpuser@sftp
+    # Puis: sftp -P 22 client1@sftp
+    #      sftp -P 22 client2@sftp
+    #      sftp -P 22 client3@sftp
 
 networks:
   sftp_network:
