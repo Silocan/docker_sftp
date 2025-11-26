@@ -18,17 +18,30 @@ setup_sftp_user() {
     fi
     
     # Créer le répertoire utilisateur dans /data
-    local user_dir="/data/${directory:-$username}"
+    # Le dossier spécifié sera directement accessible par l'utilisateur
+    local dir_name="${directory:-$username}"
+    local user_dir="/data/$dir_name"
     mkdir -p "$user_dir"
+    
+    # Le ChrootDirectory doit être détenu par root:root avec permissions 755
+    # Mais on veut que l'utilisateur puisse écrire directement dans le dossier spécifié
+    # Solution: utiliser /data comme chroot pour tous les utilisateurs
+    # et chaque utilisateur démarre dans son dossier spécifique
+    # Le dossier spécifié sera détenu par l'utilisateur pour qu'il puisse y écrire
+    
+    # S'assurer que le dossier utilisateur existe et que l'utilisateur peut y écrire
     chown "$username:$username" "$user_dir"
     chmod 755 "$user_dir"
     
     # Ajouter la configuration SSH pour cet utilisateur
+    # Le ChrootDirectory est /data, et l'utilisateur démarre dans son dossier spécifique
+    # Le chemin dans le chroot sera /${dir_name}
+    # L'utilisateur sera directement dans le dossier spécifié et pourra y écrire
     if ! grep -q "Match User $username" /etc/ssh/sshd_config; then
         echo "" >> /etc/ssh/sshd_config
         echo "Match User $username" >> /etc/ssh/sshd_config
         echo "    ChrootDirectory /data" >> /etc/ssh/sshd_config
-        echo "    ForceCommand internal-sftp" >> /etc/ssh/sshd_config
+        echo "    ForceCommand internal-sftp -d /$dir_name" >> /etc/ssh/sshd_config
         echo "    AllowTcpForwarding no" >> /etc/ssh/sshd_config
         echo "    X11Forwarding no" >> /etc/ssh/sshd_config
     fi
